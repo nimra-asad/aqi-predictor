@@ -1,13 +1,18 @@
-# Secrets
+# secrets
 .env
 
-# Virtual environment
+# virtual env
 .venv/
 
-# Python cache
-__pycache__/
-*.pyc
+# data (generated)
+data/features.csv
+data/features_backup.csv
+data/forecast_*.csv
+data/backfill_progress_*.txt
 
-# Raw data & generated outputs
-data/raw/
-outputs/
+# optional: ignore large historical datasets (recommended)
+data/historical_features*.csv
+
+# outputs (optional)
+# If you want to deploy without retraining, comment the next line OUT
+# outputs/
