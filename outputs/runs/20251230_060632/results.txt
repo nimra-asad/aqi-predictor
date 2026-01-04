@@ -1,0 +1,5 @@
+﻿GradientBoosting    100.00%
+RandomForest         99.82%
+ExtraTrees           97.71%
+LogisticRegression   85.09%
+Best: GradientBoosting
