@@ -1,0 +1,6 @@
+Model name: lahore_aqi_classifier
+Version: v1
+Framework: scikit-learn
+Features: hour, day, month, pm2_5, pm10, no2, so2, co, o3
+Target: aqi_class
+Registered on: 2026-02-06
