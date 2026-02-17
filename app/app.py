@@ -1,4 +1,5 @@
 import os
+import json
 import joblib
 import requests
 import pandas as pd
@@ -13,6 +14,7 @@ st.set_page_config(page_title="Lahore AQI Forecasting", layout="wide")
 
 HIST_PATH = "data/historical_features_1y.csv"
 MODEL_PATH = "outputs/best_model.joblib"
+METRICS_PATH = "outputs/model_metrics.json"
 
 FEATURES = ["hour", "day", "month", "pm2_5", "pm10", "no2", "so2", "co", "o3"]
 TARGET = "aqi_class"
@@ -20,11 +22,12 @@ TARGET = "aqi_class"
 # OpenWeather forecast endpoint
 FORECAST_URL = "https://api.openweathermap.org/data/2.5/air_pollution/forecast"
 
+
 # ---------------- Helpers ----------------
 def safe_load_csv(path):
+    """Return dataframe if exists, else None (so app does not break on deployment)."""
     if not os.path.exists(path):
-        st.error(f"Missing file: {path}. (Commit it to GitHub for deployment.)")
-        st.stop()
+        return None
     return pd.read_csv(path)
 
 def load_model():
@@ -34,31 +37,40 @@ def load_model():
     return joblib.load(MODEL_PATH)
 
 def get_api_key():
-    # Streamlit Cloud: st.secrets
-    if "OPENWEATHER_API_KEY" in st.secrets:
-        return st.secrets["OPENWEATHER_API_KEY"]
+    # Try Streamlit secrets safely (won't crash if secrets.toml is missing)
+    try:
+        key = st.secrets.get("OPENWEATHER_API_KEY", None)
+        if key:
+            return key
+    except Exception:
+        pass
 
-    # Local: environment variable (from .env loaded by your terminal or VSCode)
+    # Fallback to env var (works locally if you set it)
     return os.getenv("OPENWEATHER_API_KEY")
 
-def get_city_coords():
-    # Cloud secrets first
-    lat = st.secrets.get("CITY_LAT", None) if hasattr(st, "secrets") else None
-    lon = st.secrets.get("CITY_LON", None) if hasattr(st, "secrets") else None
 
-    # Fallback to env
-    if lat is None:
-        lat = os.getenv("CITY_LAT", "31.5497")
-    if lon is None:
-        lon = os.getenv("CITY_LON", "74.3436")
+
+def get_city_coords():
+    # Defaults (Lahore)
+    lat, lon = "31.5497", "74.3436"
+
+    try:
+        lat = st.secrets.get("CITY_LAT", lat)
+        lon = st.secrets.get("CITY_LON", lon)
+    except Exception:
+        pass
+
+    lat = os.getenv("CITY_LAT", lat)
+    lon = os.getenv("CITY_LON", lon)
 
     return float(lat), float(lon)
+
 
 def aqi_to_class_openweather(aqi):
     mapping = {1: "Good", 2: "Fair", 3: "Moderate", 4: "Poor", 5: "Very Poor"}
     try:
         return mapping.get(int(aqi), "Unknown")
-    except:
+    except Exception:
         return "Unknown"
 
 @st.cache_data(ttl=900)  # cache 15 minutes
@@ -123,17 +135,19 @@ def filter_next_72_hours(df_forecast: pd.DataFrame) -> pd.DataFrame:
     df = df.sort_values("timestamp_utc")
     return df
 
+
 # ---------------- UI ----------------
 st.title("🌫️ Lahore AQI Forecasting Dashboard")
 st.caption("Real-time + 3-day forecast using OpenWeather + ML model")
 
 page = st.sidebar.radio("Menu", ["🌍 Overview", "📈 3-Day Forecast", "🧪 Model Performance", "🗂️ Data"])
 
+
 # ---------- Overview ----------
 if page == "🌍 Overview":
     c1, c2, c3 = st.columns(3)
     c1.metric("City", "Lahore")
-    c2.metric("Model", "Gradient Boosting (Saved)")
+    c2.metric("Model", "Best Saved Model (outputs/best_model.joblib)")
     c3.metric("Forecast Horizon", "Next 72 hours")
 
     st.write("### What this app does")
@@ -141,10 +155,11 @@ if page == "🌍 Overview":
         "- Fetches **live OpenWeather forecast** data\n"
         "- Filters exactly **now → next 72 hours**\n"
         "- Predicts AQI class using your trained ML model\n"
-        "- Shows performance on 1-year historical dataset"
+        "- Shows model performance (live if dataset exists, otherwise from saved metrics JSON)"
     )
 
     st.info("Open **📈 3-Day Forecast** to see real-time predictions.")
+
 
 # ---------- 3-Day Forecast ----------
 if page == "📈 3-Day Forecast":
@@ -194,13 +209,37 @@ if page == "📈 3-Day Forecast":
 
     st.caption("Note: 'ow_num' is OpenWeather's own forecast AQI class; 'pred_num' is your ML model prediction.")
 
+
 # ---------- Model Performance ----------
 if page == "🧪 Model Performance":
-    st.subheader("🧪 Model Performance on Historical Holdout Test Set")
+    st.subheader("🧪 Model Performance")
 
+    df = safe_load_csv(HIST_PATH)
+
+    # If dataset missing (deployment case): show saved metrics
+    if df is None:
+        st.warning("Historical dataset not included in deployment. Showing saved evaluation metrics.")
+
+        if os.path.exists(METRICS_PATH):
+            with open(METRICS_PATH, "r") as f:
+                metrics = json.load(f)
+
+            st.metric("Accuracy", f"{metrics['accuracy']*100:.2f}%")
+            st.metric("Test Samples", metrics.get("test_samples", "N/A"))
+
+            st.subheader("Classification Report")
+            report_df = pd.DataFrame(metrics["classification_report"]).T
+            st.dataframe(report_df, use_container_width=True)
+
+        else:
+            st.error(f"Saved metrics not found: {METRICS_PATH}. Commit it to GitHub to enable this page.")
+
+        st.stop()
+
+    # If dataset exists (local case): compute live metrics
     model = load_model()
-    df = safe_load_csv(HIST_PATH).dropna(subset=FEATURES + [TARGET]).copy()
 
+    df = df.dropna(subset=FEATURES + [TARGET]).copy()
     for c in FEATURES:
         df[c] = pd.to_numeric(df[c], errors="coerce")
     df = df.dropna(subset=FEATURES)
@@ -221,17 +260,21 @@ if page == "🧪 Model Performance":
     report = classification_report(y_test, preds, output_dict=True, zero_division=0)
     st.dataframe(pd.DataFrame(report).T, use_container_width=True)
 
+
 # ---------- Data ----------
 if page == "🗂️ Data":
     st.subheader("🗂️ Files and Data Preview")
 
-    st.write("Historical sample:")
+    st.write("Historical dataset:")
     if os.path.exists(HIST_PATH):
         st.dataframe(pd.read_csv(HIST_PATH).head(10), use_container_width=True)
     else:
-        st.warning(f"Missing {HIST_PATH}")
+        st.warning(f"Dataset not deployed: {HIST_PATH}")
 
     st.write("Model file:")
     st.write("✅ Found" if os.path.exists(MODEL_PATH) else f"❌ Missing {MODEL_PATH}")
+
+    st.write("Saved metrics file:")
+    st.write("✅ Found" if os.path.exists(METRICS_PATH) else f"❌ Missing {METRICS_PATH}")
 
     st.write("Tip: On Streamlit Cloud, add secrets OPENWEATHER_API_KEY, CITY_LAT, CITY_LON.")

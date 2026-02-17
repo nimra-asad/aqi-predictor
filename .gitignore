@@ -16,3 +16,13 @@ data/historical_features*.csv
 # outputs (optional)
 # If you want to deploy without retraining, comment the next line OUT
 # outputs/
+# Streamlit secrets
+**/secrets.toml
+app/.streamlit/
+.streamlit/
+
+# Local scripts
+generate_metrics.py
+
+# Large / generated artifacts
+outputs/feature_store_snapshot.parquet

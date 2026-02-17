@@ -1,0 +1,54 @@
+{
+    "accuracy": 1.0,
+    "test_samples": 1704,
+    "features": [
+        "hour",
+        "day",
+        "month",
+        "pm2_5",
+        "pm10",
+        "no2",
+        "so2",
+        "co",
+        "o3"
+    ],
+    "classification_report": {
+        "Fair": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 90.0
+        },
+        "Moderate": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 461.0
+        },
+        "Poor": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 413.0
+        },
+        "Very Poor": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 740.0
+        },
+        "accuracy": 1.0,
+        "macro avg": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 1704.0
+        },
+        "weighted avg": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 1704.0
+        }
+    }
+}
