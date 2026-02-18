@@ -9,6 +9,13 @@ The system integrates data ingestion, feature engineering, model training, expla
 The objective was to design a production-style AQI prediction system that satisfies requirements including feature engineering, model evaluation, explainable AI, and CI/CD automation.
 
 ---
+## Live Demo
+
+**Streamlit App:** https://aqi-predictor-tpeok4b5scmzarhbgyhcbj.streamlit.app/
+**Repository:** https://github.com/nimra-asad/aqi-predictor
+
+
+---
 
 ## Data Source
 
