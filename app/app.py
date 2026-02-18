@@ -8,7 +8,7 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 # ---------------- PAGE CONFIG ----------------
-st.set_page_config(page_title="Lahore AQI Forecasting", layout="wide")
+st.set_page_config(page_title="Lahore AQI Forecasting", page_icon="🌫️", layout="wide")
 
 # ---------------- PATHS (Streamlit Cloud safe) ----------------
 BASE_DIR = Path(__file__).resolve().parents[1]
@@ -57,7 +57,7 @@ def ow_advice(aqi_1to5):
     if aqi == 1:
         return "Air is clean. Great for outdoor activities."
     if aqi == 2:
-        return "Generally okay. Sensitive people stay aware."
+        return "Generally okay. Sensitive people should stay aware."
     if aqi == 3:
         return "Moderate pollution. Sensitive groups should reduce long outdoor exposure."
     if aqi == 4:
@@ -71,7 +71,17 @@ def ow_icon(aqi_1to5):
         aqi = int(aqi_1to5)
     except Exception:
         return "❓"
-    return {1:"😊", 2:"🙂", 3:"😷", 4:"🥵", 5:"☠️"}.get(aqi, "❓")
+    return {1:"😊", 2:"🙂", 3:"😷", 4:"😵‍💫", 5:"☠️"}.get(aqi, "❓")
+
+def aqi_badge_class(label: str) -> str:
+    m = {
+        "Good": "good",
+        "Fair": "fair",
+        "Moderate": "moderate",
+        "Poor": "poor",
+        "Very Poor": "verypoor",
+    }
+    return m.get(label, "neutral")
 
 # ---------------- DATA FETCH ----------------
 @st.cache_data(ttl=900)
@@ -152,108 +162,78 @@ def daily_cards_openweather(df_hourly: pd.DataFrame) -> pd.DataFrame:
 
     return pd.DataFrame(rows)
 
-# ---------------- THEME (Lavender/Purple/Black/White) ----------------
-# Color tokens
-PURPLE_BG_1 = "#07050F"     # near black
-PURPLE_BG_2 = "#140A2E"     # deep purple
-HERO_PURPLE = "#3B1A7A"     # strong purple
-LAVENDER = "#B9A7FF"        # lavender
-LAVENDER_SOFT = "#DCD6FF"   # softer lavender for details
-CARD_STROKE = "rgba(255,255,255,0.10)"
-TEXT_WHITE = "#FFFFFF"
-TEXT_MUTED = "#CFC7FF"
+# ---------------- PROFESSIONAL LIGHT THEME ----------------
+st.markdown("""
+<style>
+/* Base */
+.stApp { background: #F7F8FA; color: #0F172A; }
+.block-container { padding-top: 1.1rem; padding-bottom: 2rem; max-width: 1200px; }
+html, body, [class*="css"]  { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
 
-# Streamlit base theme overrides
-st.markdown(
-    f"""
-    <style>
-      /* App background */
-      .stApp {{
-        background: radial-gradient(1200px 700px at 15% 10%, {PURPLE_BG_2} 0%, {PURPLE_BG_1} 55%, #000 100%);
-        color: {TEXT_WHITE};
-      }}
+/* Optional: remove Streamlit UI chrome */
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
 
-      /* Remove extra padding top */
-      .block-container {{ padding-top: 1.2rem; }}
+/* Headings */
+h1 { letter-spacing: -0.03em; margin-bottom: 0.2rem; }
+h2 { letter-spacing: -0.02em; }
+.subtle { color: #64748B; margin-top: -6px; }
 
-      /* Titles */
-      h1, h2, h3, h4, h5, h6 {{ color: {TEXT_WHITE}; }}
-      .subtle {{ color: {TEXT_MUTED}; margin-top: -6px; }}
+/* Card */
+.card {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+}
+.card-header {
+  display:flex; justify-content:space-between; align-items:flex-start; gap:14px;
+}
+.title-sm { font-size: 0.95rem; font-weight: 800; color: #334155; margin-bottom: 8px; }
+.big { font-size: 2.05rem; font-weight: 900; color: #0F172A; margin: 0; line-height: 1.15; }
+.small { font-size: 0.95rem; color: #475569; margin-top: 10px; line-height: 1.45; }
+.pill {
+  display:inline-block; padding: 6px 10px; border-radius: 999px;
+  background: #F8FAFC; border: 1px solid #E5E7EB;
+  font-weight: 700; font-size: 0.85rem; color: #0F172A; margin-top: 10px;
+}
 
-      /* Card styles */
-      .card {{
-        border-radius: 18px;
-        padding: 18px 18px;
-        border: 1px solid {CARD_STROKE};
-        box-shadow: 0 12px 28px rgba(0,0,0,0.40);
-      }}
-      .hero {{
-        background: linear-gradient(135deg, {HERO_PURPLE} 0%, #2B0F5C 55%, #1B0A3F 100%);
-      }}
-      .lav {{
-        background: linear-gradient(135deg, rgba(185,167,255,0.22) 0%, rgba(185,167,255,0.12) 60%, rgba(255,255,255,0.06) 100%);
-      }}
+/* Badges */
+.badge {
+  display:inline-block; padding: 6px 10px; border-radius: 999px;
+  font-weight: 900; font-size: 0.85rem; border: 1px solid #E5E7EB;
+  background: #F8FAFC; color: #0F172A;
+}
+.neutral { background:#F8FAFC; border-color:#E5E7EB; color:#0F172A; }
+.good { background:#ECFDF5; border-color:#A7F3D0; color:#065F46; }
+.fair { background:#EFF6FF; border-color:#BFDBFE; color:#1D4ED8; }
+.moderate { background:#FFFBEB; border-color:#FDE68A; color:#92400E; }
+.poor { background:#FFF7ED; border-color:#FDBA74; color:#9A3412; }
+.verypoor { background:#FEF2F2; border-color:#FECACA; color:#991B1B; }
 
-      .big {{ font-size: 34px; font-weight: 850; letter-spacing: 0.2px; }}
-      .mid {{ font-size: 18px; font-weight: 700; opacity: 0.96; }}
-      .small {{ font-size: 14px; color: {LAVENDER_SOFT}; margin-top: 8px; line-height: 1.35; }}
-      .pill {{
-        display:inline-block;
-        padding: 6px 10px;
-        border-radius: 999px;
-        background: rgba(255,255,255,0.14);
-        border: 1px solid {CARD_STROKE};
-        font-weight: 700;
-        font-size: 13px;
-        margin-top: 10px;
-        color: {TEXT_WHITE};
-      }}
+/* Divider */
+hr { border:none; border-top: 1px solid #E5E7EB; margin: 18px 0; }
 
-      .hr {{
-        height:1px;
-        background: rgba(255,255,255,0.12);
-        margin: 16px 0;
-      }}
+/* Dataframe */
+.stDataFrame { border-radius: 14px; overflow: hidden; border: 1px solid #E5E7EB; background: #FFFFFF; }
 
-      /* Expander */
-      details {{
-        border-radius: 14px;
-        border: 1px solid {CARD_STROKE};
-        background: rgba(255,255,255,0.04);
-        padding: 4px 8px;
-      }}
+/* Metric cards */
+[data-testid="stMetric"] {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  padding: 14px;
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+}
+[data-testid="stMetricLabel"] { color: #64748B !important; }
+</style>
+""", unsafe_allow_html=True)
 
-      /* Dataframe styling wrapper */
-      .stDataFrame {{
-        border-radius: 14px;
-        overflow: hidden;
-        border: 1px solid {CARD_STROKE};
-        background: rgba(255,255,255,0.03);
-      }}
-
-      /* Metric cards */
-      [data-testid="stMetric"] {{
-        background: rgba(255,255,255,0.04);
-        border: 1px solid {CARD_STROKE};
-        padding: 14px 14px;
-        border-radius: 16px;
-      }}
-      [data-testid="stMetricLabel"] {{ color: {TEXT_MUTED} !important; }}
-      [data-testid="stMetricValue"] {{ color: {TEXT_WHITE} !important; }}
-
-      /* Make captions visible */
-      .stCaption {{ color: {TEXT_MUTED} !important; }}
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
-# ---------------- APP ----------------
+# ---------------- APP HEADER ----------------
 st.title("🌫️ Lahore AQI Forecasting Dashboard")
-st.markdown(
-    '<div class="subtle">OpenWeather AQI (1–5) for next 72 hours + next 3 days cards (tomorrow → day+3).</div>',
-    unsafe_allow_html=True
-)
+st.markdown('<div class="subtle">OpenWeather AQI (1–5) for next 72 hours + next 3 days cards (tomorrow → day+3).</div>', unsafe_allow_html=True)
+st.markdown("<hr>", unsafe_allow_html=True)
 
 api_key = get_api_key()
 if not api_key:
@@ -271,10 +251,10 @@ if fc_72.empty:
     st.error("No usable forecast rows for the next 72 hours. Please refresh in a few minutes.")
     st.stop()
 
-# ML predictions kept (for project value)
+# ML predictions kept
 fc_72["predicted_aqi_class"] = model.predict(fc_72[FEATURES])
 
-# ---------- HERO ----------
+# ---------- CURRENT HERO (CLEAN CARD) ----------
 current = fc_72.iloc[0]
 ow_aqi_now = int(current["ow_aqi"]) if pd.notna(current["ow_aqi"]) else None
 ow_label_now = ow_aqi_to_label(ow_aqi_now)
@@ -284,30 +264,49 @@ icon_now = ow_icon(ow_aqi_now)
 pm25 = float(current["pm2_5"])
 pm10 = float(current["pm10"])
 ts_now = pd.to_datetime(current["timestamp_local"])
+badge_css = aqi_badge_class(ow_label_now)
 
-st.markdown(
-    f"""
-    <div class="card hero">
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:14px;">
-        <div>
-          <div class="mid">Current (OpenWeather AQI)</div>
-          <div class="big">AQI: {ow_aqi_now if ow_aqi_now is not None else "?"} — {ow_label_now}</div>
-          <div class="small">{advice_now}</div>
-          <div class="pill">Time: {ts_now.strftime("%d %b %Y, %H:%M")} (PKT)</div>
-        </div>
-        <div style="text-align:right;">
-          <div style="font-size:50px; line-height:1;">{icon_now}</div>
-          <div class="small" style="margin-top:10px;">
-            <b style="color:{TEXT_WHITE};">Main Pollutants</b><br/>
-            PM2.5: {pm25:.2f} μg/m³<br/>
-            PM10: {pm10:.2f} μg/m³
+col_left, col_right = st.columns([2.1, 1], gap="large")
+
+with col_left:
+    st.markdown(
+        f"""
+        <div class="card">
+          <div class="card-header">
+            <div style="flex:1;">
+              <div class="title-sm">Current AQI (OpenWeather)</div>
+              <div class="big">AQI: {ow_aqi_now if ow_aqi_now is not None else "?"} — {ow_label_now}</div>
+              <div class="small">{advice_now}</div>
+              <div class="pill">🕒 {ts_now.strftime("%d %b %Y, %H:%M")} (PKT)</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:44px; line-height:1;">{icon_now}</div>
+              <div style="margin-top:10px;">
+                <span class="badge {badge_css}">{ow_label_now}</span>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+        """,
+        unsafe_allow_html=True
+    )
+
+with col_right:
+    st.markdown(
+        f"""
+        <div class="card">
+          <div class="title-sm">Main Pollutants</div>
+          <div class="small" style="margin-top:0;">
+            <b>PM2.5:</b> {pm25:.2f} μg/m³<br/>
+            <b>PM10:</b> {pm10:.2f} μg/m³
+          </div>
+          <div class="pill">📍 Lahore</div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+st.markdown("<hr>", unsafe_allow_html=True)
 
 # ---------- 3 DAY CARDS ----------
 st.subheader("📅 Next 3 Days AQI Forecast (OpenWeather 1–5)")
@@ -316,31 +315,42 @@ cards = daily_cards_openweather(fc_72)
 if cards.empty:
     st.warning("Could not build daily cards (not enough forecast points).")
 else:
-    cols = st.columns(3)
+    cols = st.columns(3, gap="large")
     for i, row in enumerate(cards.itertuples(index=False)):
         date_str = pd.to_datetime(row.date).strftime("%d %b %Y")
         ow_aqi = row.ow_aqi
         ow_label = row.ow_aqi_label
         icon = ow_icon(ow_aqi)
         advice = ow_advice(ow_aqi)
+        css = aqi_badge_class(ow_label)
 
         with cols[i]:
             st.markdown(
                 f"""
-                <div class="card lav" style="min-height:170px;">
-                  <div class="mid" style="color:{TEXT_WHITE};">{date_str}</div>
-                  <div class="big" style="margin-top:6px;">AQI: {ow_aqi if ow_aqi is not None else "?"} — {ow_label} {icon}</div>
-                  <div class="small">
-                    Avg PM2.5: {row.pm2_5_avg:.2f} μg/m³ &nbsp;|&nbsp;
-                    Avg PM10: {row.pm10_avg:.2f} μg/m³
+                <div class="card" style="min-height:190px;">
+                  <div class="card-header">
+                    <div>
+                      <div class="title-sm">{date_str}</div>
+                      <div class="big" style="font-size:1.6rem;">AQI: {ow_aqi if ow_aqi is not None else "?"} — {ow_label}</div>
+                    </div>
+                    <div style="text-align:right;">
+                      <div style="font-size:36px; line-height:1;">{icon}</div>
+                      <div style="margin-top:10px;">
+                        <span class="badge {css}">{ow_label}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div class="small" style="margin-top:10px;">{advice}</div>
+                  <div class="small">
+                    Avg PM2.5: {row.pm2_5_avg:.2f} μg/m³ &nbsp;|&nbsp; Avg PM10: {row.pm10_avg:.2f} μg/m³
+                    <br/><br/>
+                    {advice}
+                  </div>
                 </div>
                 """,
                 unsafe_allow_html=True
             )
 
-st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
+st.markdown("<hr>", unsafe_allow_html=True)
 
 # ---------- HOURLY FORECAST ----------
 st.subheader("⏱️ Hourly Forecast (Next 72 Hours)")
@@ -349,7 +359,7 @@ k1, k2, k3, k4 = st.columns(4)
 k1.metric("Next Hour (OW AQI)", f"{int(fc_72['ow_aqi'].iloc[0]) if pd.notna(fc_72['ow_aqi'].iloc[0]) else '—'}")
 k2.metric("Most Common OW AQI (72h)", f"{int(fc_72['ow_aqi'].dropna().mode().iloc[0]) if fc_72['ow_aqi'].dropna().shape[0] else '—'}")
 k3.metric("Rows Used", str(len(fc_72)))
-k4.metric("Last Forecast Time", str(fc_72["timestamp_local"].iloc[-1])[:16])
+k4.metric("Last Forecast Time", str(fc_72['timestamp_local'].iloc[-1])[:16])
 
 # Chart: OW AQI (1..5) and ML class mapped to 1..5
 ml_map = {"Good": 1, "Fair": 2, "Moderate": 3, "Poor": 4, "Very Poor": 5, "Unknown": 0}
@@ -364,5 +374,6 @@ st.caption("ow_aqi_num = OpenWeather AQI (1–5). ml_num = your ML predicted cla
 with st.expander("Show hourly forecast table (first 72 rows)"):
     st.dataframe(
         fc_72[["timestamp_local", "ow_aqi", "ow_aqi_label", "predicted_aqi_class"] + FEATURES].reset_index(drop=True),
-        use_container_width=True
+        use_container_width=True,
+        hide_index=True
     )
