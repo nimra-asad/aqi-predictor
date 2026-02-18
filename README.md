@@ -1,273 +1,172 @@
-# Lahore AQI Forecasting Dashboard (End-to-End MLOps Project)
+# Lahore AQI Forecasting System
 
-## 📌 Project Overview
+## Project Overview
 
-This project is a complete end-to-end Machine Learning Operations (MLOps) system that forecasts the Air Quality Index (AQI) for Lahore, Pakistan.
+This project implements a complete end-to-end Machine Learning pipeline to forecast the Air Quality Index (AQI) for Lahore, Pakistan.
 
-The system:
+The system integrates data ingestion, feature engineering, model training, explainability, automation, and deployment into a structured MLOps workflow.
 
-- Fetches air pollution forecast data from the OpenWeather API
-- Builds structured features (time-based + pollutant features)
-- Trains a machine learning model
-- Explains predictions using SHAP
-- Automates pipelines via GitHub Actions
-- Deploys an interactive Streamlit dashboard
-- Supports local feature-store fallback mode
-
-This project satisfies all requirements including:
-- Feature engineering
-- Model training & evaluation
-- Model explainability
-- Pipeline automation
-- Web-based deployment
+The objective was to design a production-style AQI prediction system that satisfies requirements including feature engineering, model evaluation, explainable AI, and CI/CD automation.
 
 ---
 
-## 🌍 Live Deployment
+## Data Source
 
-- 🔗 **GitHub Repository**: (Paste your GitHub link here)
-- 🚀 **Streamlit Live App**: (Paste your Streamlit Cloud link here)
+AQI forecast data is retrieved from the OpenWeather Air Pollution API (AQI scale 1–5).
 
----
+Pollutants used in the model:
 
-## 🏗️ System Architecture
-
-### 1️⃣ Data Source
-
-Data is collected from:
-- OpenWeather Air Pollution Forecast API (AQI index 1–5)
-
-Pollutants used:
-- PM2.5
-- PM10
-- NO2
-- SO2
-- CO
-- O3
+- PM2.5  
+- PM10  
+- NO₂  
+- SO₂  
+- CO  
+- O₃  
 
 ---
 
-### 2️⃣ Feature Engineering
+## Feature Engineering
 
-Generated features include:
+The feature pipeline transforms raw API data into structured model-ready features, including:
 
-- `hour`
-- `day`
-- `month`
-- Pollutant concentrations
-- AQI change
-- AQI class
-- Timestamp metadata
+- Time-based features: hour, day, month  
+- Pollutant concentration features  
+- AQI change indicator  
+- AQI classification label  
 
-Feature generation scripts:
-src/fetch_data.py
-src/feature_pipeline.py
-src/prepare_ml_data.py
+Feature preparation scripts are located in the `src/` directory.
+
+---
+
+## Model Development
+
+A supervised machine learning model was trained using engineered features to predict AQI levels.
+
+The training workflow includes:
+
+- Data preprocessing  
+- Model fitting  
+- Performance evaluation  
+- Model selection  
+
+Evaluation metrics:
+
+- MAE (Mean Absolute Error)  
+- RMSE (Root Mean Squared Error)  
+- R² Score  
+
+The final trained model is stored in:
+
+outputs/best_model.joblib
 
 yaml
 Copy code
 
 ---
 
-### 3️⃣ Model Training & Evaluation
+## Model Explainability
 
-Training scripts:
-src/train_model.py
-src/train_and_evaluate.py
+SHAP (SHapley Additive exPlanations) was implemented to interpret model predictions.
 
-yaml
-Copy code
+The SHAP summary plot highlights feature importance and provides transparency into how pollutant levels influence AQI predictions.
 
-Outputs:
-- `outputs/best_model.joblib`
-- `outputs/model_metrics.json`
-- `outputs/model_report.txt`
+Output file:
 
-Model performance metrics include:
-- MAE (Mean Absolute Error)
-- RMSE (Root Mean Squared Error)
-- R² Score
-
----
-
-### 4️⃣ Model Explainability (SHAP)
-
-Explainability implemented using SHAP:
-
-src/shap_explain.py
+outputs/shap_summary.png
 
 yaml
 Copy code
 
-Output:
-- `outputs/shap_summary.png`
+---
 
-This ensures interpretability and transparency of AQI predictions.
+## Automation (CI/CD)
+
+Pipeline automation is configured using GitHub Actions.
+
+Automated workflows include:
+
+- Feature generation  
+- Model training  
+- Evaluation  
+
+This ensures reproducibility and continuous integration of the ML pipeline.
+
+Workflow configuration is located in:
+
+.github/workflows/ci.yml
+
+yaml
+Copy code
 
 ---
 
-### 5️⃣ Feature Store Integration
+## Feature Store Integration
 
-Feature push script:
-src/push_to_feature_store.py
+A feature push script supports both:
 
-bash
-Copy code
-
-Supports two modes:
-
-- `local` mode → saves snapshot locally
-- `hopsworks` mode → pushes to remote feature store
+- Local snapshot mode  
+- Remote feature store mode  
 
 Safe local execution:
 
 ```powershell
 $env:FEATURE_STORE_MODE="local"
 python -m src.push_to_feature_store
-6️⃣ CI/CD Automation
-Automated pipelines configured in:
+Streamlit Deployment
+An interactive Streamlit dashboard was developed to:
 
-bash
-Copy code
-.github/workflows/ci.yml
-Automation includes:
+Display 72-hour AQI forecasts
 
-Feature generation
+Show 3-day AQI summary
 
-Model training
+Present pollutant breakdown
 
-Evaluation
+Provide model-based predictions
 
-Scheduled pipeline runs
+Visualize SHAP explainability
 
-7️⃣ Streamlit Web Dashboard
-Main file:
+Main application file:
 
 bash
 Copy code
 app/app.py
-Dashboard features:
-
-72-hour AQI forecast
-
-Next 3-day AQI summary cards
-
-Pollutant breakdown
-
-Model-based predictions
-
-SHAP explanation visualization
-
-Professional lavender/purple UI theme
-
-Safe secrets handling
-📁 Project Structure
-AQI-PREDICTOR
-│
-├── .github/workflows/
+Project Structure
+bash
+Copy code
+aqi-predictor/
 ├── app/
-│   └── app.py
-├── data/
-├── outputs/
-│   ├── best_model.joblib
-│   ├── model_metrics.json
-│   ├── model_report.txt
-│   └── shap_summary.png
 ├── src/
-│   ├── fetch_data.py
-│   ├── feature_pipeline.py
-│   ├── train_model.py
-│   ├── train_and_evaluate.py
-│   ├── shap_explain.py
-│   └── push_to_feature_store.py
+├── outputs/
+├── .github/workflows/
 ├── requirements.txt
-├── runtime.txt
 └── README.md
+Local Setup
+Clone repository
 
-⚙️ Local Setup Instructions
-1️⃣ Clone Repository
-git clone <your-repo-link>
-cd aqi-predictor
+Create virtual environment
 
-2️⃣ Create Virtual Environment
-python -m venv .venv
-.\.venv\Scripts\Activate
-pip install -r requirements.txt
+Install dependencies
 
-3️⃣ Add API Key Locally
+Add API key in .streamlit/secrets.toml
 
-Create:
+Run:
 
-.streamlit/secrets.toml
-
-
-Add:
-
-OPENWEATHER_API_KEY = "YOUR_KEY"
-CITY_LAT = "31.5497"
-CITY_LON = "74.3436"
-
-4️⃣ Run the App
+arduino
+Copy code
 python -m streamlit run app/app.py
+Conclusion
+This project demonstrates a structured, automated, and explainable AQI forecasting system built using modern MLOps principles.
 
-☁️ Streamlit Cloud Deployment
-
-Connect GitHub repository.
-
-Set main file path to:
-
-app/app.py
-
-
-Add secrets in Streamlit Cloud:
-
-OPENWEATHER_API_KEY
-CITY_LAT
-CITY_LON
-
-
-Deploy and reboot the app.
-
-🔐 Security Notes
-
-The following files are NOT committed:
-
-.env
-
-.streamlit/secrets.toml
-
-.venv
-
-Secrets are managed securely via:
-
-Streamlit Cloud Secrets
-
-Environment variables
-
-📊 Key Achievements
-
-✔ End-to-end ML pipeline
-✔ Automated CI/CD
-✔ Feature engineering
-✔ Model evaluation
-✔ SHAP explainability
-✔ Professional dashboard
-✔ Production-ready project structure
-
-🎯 Conclusion
-
-This project demonstrates a fully automated, production-style AQI forecasting system built using modern MLOps principles, structured feature engineering, explainable machine learning, and cloud deployment.
-
-It fulfills all project requirements including:
+It successfully integrates:
 
 Data ingestion
 
 Feature engineering
 
-Model training & evaluation
+Model training and evaluation
 
 Explainability
 
-Automation
+CI/CD automation
 
-Deployment
+Cloud deployment
