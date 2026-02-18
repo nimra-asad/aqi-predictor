@@ -26,3 +26,4 @@ generate_metrics.py
 
 # Large / generated artifacts
 outputs/feature_store_snapshot.parquet
+__pycache__/
