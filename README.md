@@ -102,71 +102,66 @@ Copy code
 
 ## Feature Store Integration
 
-A feature push script supports both:
+A dedicated feature store integration was implemented to manage engineered features in a structured and reusable manner. The project supports two operational modes:
 
-- Local snapshot mode  
-- Remote feature store mode  
+- **Local Mode:** Saves a feature snapshot locally for development and safe execution.
+- **Remote Mode:** Pushes features to a configured feature store environment.
 
-Safe local execution:
+For safe local execution, the following command can be used:
 
-```powershell
-$env:FEATURE_STORE_MODE="local"
-python -m src.push_to_feature_store
-Streamlit Deployment
-An interactive Streamlit dashboard was developed to:
+$env:FEATURE_STORE_MODE="local"  
+python -m src.push_to_feature_store  
 
-Display 72-hour AQI forecasts
+This ensures reproducibility and separation between development and deployment environments.
 
-Show 3-day AQI summary
+---
 
-Present pollutant breakdown
+## Streamlit Deployment
 
-Provide model-based predictions
+An interactive Streamlit dashboard was developed to present the model outputs in a clear and user-friendly format.
 
-Visualize SHAP explainability
+The dashboard provides:
 
-Main application file:
+- 72-hour AQI forecast visualization  
+- 3-day AQI summary display  
+- Pollutant concentration breakdown  
+- Model-based AQI predictions  
+- SHAP explainability visualization  
 
-bash
-Copy code
-app/app.py
-Project Structure
-bash
-Copy code
-aqi-predictor/
-├── app/
-├── src/
-├── outputs/
-├── .github/workflows/
-├── requirements.txt
-└── README.md
-Local Setup
-Clone repository
+The main application entry point is:
 
-Create virtual environment
+app/app.py  
 
-Install dependencies
+---
 
-Add API key in .streamlit/secrets.toml
+## Project Structure
 
-Run:
+The project is organized as follows:
 
-arduino
-Copy code
-python -m streamlit run app/app.py
-Conclusion
-This project demonstrates a structured, automated, and explainable AQI forecasting system built using modern MLOps principles.
+aqi-predictor/  
+├── app/  
+├── src/  
+├── outputs/  
+├── .github/workflows/  
+├── requirements.txt  
+└── README.md  
 
-It successfully integrates:
+---
 
-Data ingestion
+## Local Setup
 
-Feature engineering
+To run the project locally:
 
-Model training and evaluation
+1. Clone the repository  
+2. Create and activate a virtual environment  
+3. Install dependencies using requirements.txt  
+4. Add your API key in `.streamlit/secrets.toml`  
+5. Run the application using:
 
-Explainability
+python -m streamlit run app/app.py  
 
-CI/CD automation
+---
 
-Cloud deployment
+## Conclusion
+
+This project demonstrates a structured and automated AQI forecasting system built using modern MLOps practices. It integrates data ingestion, feature engineering, model training, explainability, CI/CD automation, and cloud deployment into a cohesive and production-ready workflow.
